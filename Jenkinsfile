@@ -1,4 +1,5 @@
 pipeline {
+    
     agent any
     tools { dockerTool 'my-docker' }
     environment { IMAGE = "ankit12321/jenkins-demo-app" }
