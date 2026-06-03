@@ -1,54 +1,26 @@
 pipeline {
     agent any
-
-    tools {
-        dockerTool 'my-docker'
-    }
-
-    environment {
-        // Replace this with your actual Docker Hub username
-        IMAGE_NAME = "ankit12321/jenkins-demo-app"
-        TAG = "${BUILD_NUMBER}"
-    }
-
+    tools { dockerTool 'my-docker' }
+    environment { IMAGE = "ankit12321/jenkins-demo-app" }
+    
     stages {
-        stage('Checkout Code') {
+        stage('Build') {
             steps {
-                checkout scm
+                script { docker.build("${IMAGE}:${BUILD_NUMBER}") }
             }
         }
-
-        stage('Build Docker Image') {
+        
+        stage('Push') {
             steps {
                 script {
-                    echo "Building the Docker Image..."
-                    docker.build("${IMAGE_NAME}:${TAG}")
-                }
-            }
-        }
-
-        stage('Push to Docker Hub') {
-            steps {
-                script {
-                    echo "Logging into Docker Hub and pushing image..."
-                    // We need to tell the Jenkins Docker plugin explicitly where the tool is
                     docker.withTool('my-docker') {
-                        docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-creds') {
-                            docker.image("${IMAGE_NAME}:${TAG}").push()
-                            docker.image("${IMAGE_NAME}:${TAG}").push('latest')
+                        docker.withRegistry('', 'dockerhub-creds') {
+                            docker.image("${IMAGE}:${BUILD_NUMBER}").push()
+                            docker.image("${IMAGE}:${BUILD_NUMBER}").push('latest')
                         }
                     }
                 }
             }
-        }
-    }
-
-    post {
-        success {
-            echo "Pipeline finished successfully! Image pushed to Docker Hub."
-        }
-        failure {
-            echo "Pipeline failed. Please check the logs."
         }
     }
 }
