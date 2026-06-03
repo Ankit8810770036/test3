@@ -31,10 +31,12 @@ pipeline {
             steps {
                 script {
                     echo "Logging into Docker Hub and pushing image..."
-                    // Make sure 'dockerhub-creds' exists in your Jenkins credentials
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-creds') {
-                        docker.image("${IMAGE_NAME}:${TAG}").push()
-                        docker.image("${IMAGE_NAME}:${TAG}").push('latest')
+                    // We need to tell the Jenkins Docker plugin explicitly where the tool is
+                    docker.withTool('my-docker') {
+                        docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-creds') {
+                            docker.image("${IMAGE_NAME}:${TAG}").push()
+                            docker.image("${IMAGE_NAME}:${TAG}").push('latest')
+                        }
                     }
                 }
             }
